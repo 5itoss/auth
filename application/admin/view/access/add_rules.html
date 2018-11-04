@@ -1,0 +1,135 @@
+{include file="public/header"}
+<body class="body"  style="margin-left:10%; margin-top:2%;">
+
+
+<!-- 工具集 -->
+<div class="my-btn-box">
+    <!-- <span class="fl">
+        <a class="layui-btn layui-btn-danger radius btn-delect" id="btn-delete-all">批量删除</a>
+        <a class="layui-btn btn-add btn-default" id="btn-add">添加</a>
+        <a class="layui-btn btn-add btn-default" id="btn-refresh"><i class="layui-icon">&#x1002;</i></a>
+    </span>
+    <span class="fr">
+        <span class="layui-form-label">搜索条件：</span>
+        <div class="layui-input-inline">
+            <input type="text" autocomplete="off" placeholder="请输入搜索条件" class="layui-input">
+        </div>
+        <button class="layui-btn mgl-20">查询</button>
+    </span> -->
+</div>
+
+<form class="layui-form layui-form-pane" action="">
+
+    <blockquote class="layui-elem-quote layui-text">
+        添加权限规则
+    </blockquote>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">规则名称</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="name" lay-verify="required" placeholder="请输入" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">规则url</label>
+        <div class="layui-input-inline">
+            <input type="text" name="url" lay-verify="required" placeholder="请输入" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">模块/控制器/操作，比如：admin/test/index</div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">匹配条件</label>
+        <div class="layui-input-inline">
+            <input type="text" name="condition" placeholder="请输入" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <!-- <div class="layui-form-mid layui-word-aux">22</div> -->
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">条件匹配</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="type" id="types" lay-skin="switch" value="1" lay-text="是|否">
+        </div>
+        <div class="layui-form-mid layui-word-aux">开启则不匹配条件，即查询权限的时候不会匹配附加条件</div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否禁用</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="status" id="statuss" lay-skin="switch" value="1" lay-text="是|否">
+        </div>
+    </div>
+
+    <div class="layui-form-item" style="margin-left:20%">
+        <button class="layui-btn" lay-submit="" lay-filter="sub">提交</button>
+    </div>
+</form>
+
+<script src="__admin__/frame/layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript">
+    layui.use(['form', 'layedit', 'laydate', 'element'], function () {
+        var form = layui.form
+                , layer = layui.layer
+                , layedit = layui.layedit
+                , laydate = layui.laydate
+                , element = layui.element
+                , $ = layui.jquery;
+       
+
+        //监听提交
+        form.on('submit(sub)', function (data) {
+           
+            var checked = $("#statuss").prop("checked");
+            data.field.status = checked ? 1 : 0;
+            var type = $("#types").prop("checked");
+            data.field.type = type ? 1 : 0;
+            
+            $.ajax({
+                url:"{:url('access/addRules')}",
+                method:'post',
+                data:data.field,
+                dataType:'json',
+                success:function(res){
+                    console.log(res);
+                    if(res.code ==200){
+                        layer.msg('添加成功');
+                        window.location.reload();
+                    }else{
+                        layer.alert(res.msg, {
+                            title: '错误提示'
+                        });
+                    }
+                    return false;
+                },
+                error:function(){
+                    $.ajax({
+                        url:"{:url('Tips/tips')}",
+                        dataType:'json',
+                        method:'get',
+                        success:function(res){
+                            layer.alert(res.msg,{
+                                closeBtn: 0,
+                                anim: 1, //动画类型
+                                icon: 2,
+                                title:'错误提示'
+                            },function(index){
+                                layer.close(index);
+                            });
+                        }
+                    })
+                }
+            });
+            return false;
+        });
+
+
+    });
+</script>
+</body>
+</html>

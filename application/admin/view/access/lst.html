@@ -1,0 +1,247 @@
+{include file="public/header"}
+<style>
+    table > tbody > tr > td{text-align: center}
+    table > tbody > tr > td > i{font-weight:bolder}
+</style>
+<body class="body">
+
+<!-- 工具集 -->
+<div class="my-btn-box">
+    <span class="fl">
+        <!-- <a class="layui-btn layui-btn-danger radius btn-delect" id="btn-delete-all">批量删除</a> -->
+        <!-- <a class="layui-btn btn-add btn-default" href="{:url('menu/add')}">添加</a> -->
+        <a class="layui-btn btn-add btn-default" onClick="refresh()" ><i class="layui-icon">&#x1002;</i></a>
+    </span>
+    <span class="fr">
+        <!-- <span class="layui-form-label">搜索条件：</span>
+        <div class="layui-input-inline">
+            <input type="text" autocomplete="off" placeholder="请输入搜索条件" class="layui-input">
+        </div>
+        <button class="layui-btn mgl-20">查询</button> -->
+    </span>
+</div>
+
+<!-- 表格 -->
+<table class="layui-table" lay-filter="test">
+    <thead>
+      <tr>
+        <th style="text-align: center">ID</th>
+        <th style="text-align: center">权限组名称</th>
+        <th style="text-align: center">是否禁用</th>
+        <th style="text-align: center">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+        {volist name="list" id="vo"}
+        <tr>
+            <td>{$vo.id}</td>
+            <td>{$vo.title}</td>
+            <td>
+                {if condition="$vo.status eq 1"}
+                <i class="layui-icon" style="color:green">&#xe605;</i>
+                {else /}
+                <i class="layui-icon" style="color:red">&#x1006;</i>
+                {/if}
+            </td>
+          
+            <td>
+                {php} if(in_array('admin/access/edit',$access)){ {/php}
+                    <a class="layui-btn layui-btn-mini" onClick="edit('{$vo.id}')" >编辑</a>
+                {php} }else{ {/php}
+                    <a class="layui-btn layui-btn-mini layui-btn-disabled" title="无权限">编辑</a>
+                {php} }; if(in_array('admin/access/del',$access)){{/php}
+                     <a class="layui-btn layui-btn-mini layui-btn-danger" onClick="del('{$vo.id}','{$vo.title}')">删除</a>
+                {php} }else{ {/php}
+                     <a class="layui-btn layui-btn-mini layui-btn-danger layui-btn-disabled" title="无权限">删除</a>
+                {php}}{/php}
+            </td>
+        </tr>
+        {/volist}
+    </tbody>
+  </table>
+  
+  <form class="layui-form layui-form-pane" id="edit" style="display:none;margin-left:35%;margin-top:5%">
+
+        <div class="layui-form-item" >
+            <label class="layui-form-label">权限组 ID</label>
+
+            <div class="layui-input-inline">
+                <input type="text" name="id" id="ids"  disabled placeholder="请输入" autocomplete="off"
+                        class="layui-input" >
+            </div>
+        </div>
+        <input type="hidden" name="id" id="uid">
+        <div class="layui-form-item">
+                <label class="layui-form-label">权限组名称</label>
+            
+                <div class="layui-input-inline">
+                    <input type="text" name="title" id="titles" placeholder="请输入" autocomplete="off"
+                            class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">禁用状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" id="status" lay-filter="test" name="status" lay-skin="switch" value="1"  lay-text="是|否">
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="margin-left:30%;margin-top:20px">
+            <button class="layui-btn" lay-submit="" lay-filter="ajaxGo">提交</button>
+        </div>
+    </form>
+
+
+<script type="text/javascript" src="__admin__/frame/layui/layui.js"></script>
+<script type="text/javascript" src="__admin__/js/index.js"></script>
+<script type="text/javascript">
+
+// layui方法
+layui.use(['table', 'form', 'layer'], function () {
+
+    // 操作对象
+    var form = layui.form
+            , table = layui.table
+            , layer = layui.layer
+            , $ = layui.jquery;
+    var selectfid;
+    /**
+     * 监听select选中状态
+     */
+    form.on('select(fidselect)', function(data){
+        selectfid = data.value;
+    });
+
+    window.del = function(id,title){
+        layer.confirm('确定要删除权限组【'+title+'】?', {icon: 7, title:'警告'}, function(index){
+            //do something
+            $.ajax({
+                url:"{:url('access/del')}",
+                data:{'id':id},
+                dataType:'json',
+                method:'delete',
+                success:function(res){
+                    if(res.code == 200){
+                        layer.msg(res.msg);
+                        window.location.reload();
+                    }else{
+                        layer.alert(res.msg, {
+                            title: '错误提示'
+                        });
+                    }
+                },
+                error:function(){
+                    $.ajax({
+                        url:"{:url('Tips/tips')}",
+                        dataType:'json',
+                        method:'get',
+                        success:function(res){
+                            layer.alert(res.msg,{
+                                closeBtn: 0,
+                                anim: 1, //动画类型
+                                icon: 2,
+                                title:'错误提示'
+                            },function(index){
+                                layer.close(index);
+                            });
+                        }
+                    })
+                }
+            }); 
+            layer.close(index);
+        });
+        
+    }
+    //编辑        
+    window.edit = function (id){
+        
+        layer.open({
+            type: 2,
+            title:"编辑权限组", 
+            area: ['700px', '800px'],
+            fixed: false, //不固定
+            maxmin: true,
+            content: 'edit.html?id='+id,
+        });
+    }
+
+    /**
+     * 监听form表单提交
+     */
+    form.on('submit(ajaxGo)',function(data){
+        data.field.group_id = selectfid;
+        var pas = data.field.password,
+            pass = data.field.password1;
+        if(pas !== pass){
+            layer.alert('两次密码不一致',{icon:2},function(index){
+                layer.close(index);
+                $("input[name='password']").val('');
+                $("input[name='password1']").val('');
+            });
+            return false;
+        }
+        
+        var checked = $("#status").prop("checked");
+        data.field.status = checked ? 1 : 0;
+        var checked = $("#is_admin").prop("checked");
+        data.field.is_admin = checked ? 1 : 0;
+        $.ajax({
+            url:"{:url('user/edit')}",
+            type:'post',
+            data:data.field,
+            dataType:'json',
+            success:function(res){
+                
+                if(res.code == 200){
+                    layer.msg(res.msg,{icon: 1,time: 1000},function(){
+                        // window.location.reload();
+                        window.close();
+                    })
+                }else{
+                    layer.alert(res.msg,{
+                        closeBtn: 0,
+                        anim: 1, //动画类型
+                        icon: 2,
+                        title:'错误提示'
+                    },function(index){
+                        layer.close(index);
+                    });
+                }
+            },
+            error:function(){
+                    $.ajax({
+                        url:"{:url('Tips/tips')}",
+                        dataType:'json',
+                        method:'get',
+                        success:function(res){
+                            layer.alert(res.msg,{
+                                closeBtn: 0,
+                                anim: 1, //动画类型
+                                icon: 2,
+                                title:'错误提示'
+                            },function(index){
+                                layer.close(index);
+                            });
+                        }
+                    })
+                }
+        });
+        return false;
+    });
+});
+
+//刷新
+function refresh(){
+window.location.reload();
+}
+</script>
+<!-- 表格操作按钮集 -->
+<script type="text/html" id="barOption">
+    <a class="layui-btn layui-btn-mini" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-mini layui-btn-normal" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-mini layui-btn-danger" lay-event="del">删除</a>
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{include file="public/header"}
+<body class="body"  style="margin-left:30%; margin-top:10%;">
+
+
+<!-- 工具集 -->
+<div class="my-btn-box">
+    <!-- <span class="fl">
+        <a class="layui-btn layui-btn-danger radius btn-delect" id="btn-delete-all">批量删除</a>
+        <a class="layui-btn btn-add btn-default" id="btn-add">添加</a>
+        <a class="layui-btn btn-add btn-default" id="btn-refresh"><i class="layui-icon">&#x1002;</i></a>
+    </span>
+    <span class="fr">
+        <span class="layui-form-label">搜索条件：</span>
+        <div class="layui-input-inline">
+            <input type="text" autocomplete="off" placeholder="请输入搜索条件" class="layui-input">
+        </div>
+        <button class="layui-btn mgl-20">查询</button>
+    </span> -->
+</div>
+
+<form class="layui-form layui-form-pane" action="">
+    
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户账号</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="account" lay-verify="required" placeholder="请输入" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名称</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="username" lay-verify="required" placeholder="请输入" autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">Email</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="email" lay-verify="required" placeholder="请输入" autocomplete="off"
+                class="layui-input">
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+            <label class="layui-form-label">用户密码</label>
+    
+            <div class="layui-input-inline">
+                <input type="password" name="password"placeholder="不填默认：123456" autocomplete="off"
+                       class="layui-input">
+            </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限组</label>
+        <div class="layui-input-inline">
+            <select name="id"  lay-filter="fidselect">
+                <option value="0" class="fidslt">不授予任何权限</option>
+               {volist name="groups" id="cate"}
+                    <option value="{$cate.id}" class="fidslt">{$cate.title}</option>
+               {/volist}         
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否管理员</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="is_admin" id="statuss" lay-skin="switch" value="1" lay-text="是|否">
+        </div>
+    </div>
+
+    <div class="layui-form-item" style="margin-left:20%">
+        <button class="layui-btn" lay-submit="" lay-filter="sub">提交</button>
+    </div>
+</form>
+
+<script src="__admin__/frame/layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript">
+    layui.use(['form', 'layedit', 'laydate', 'element'], function () {
+        var form = layui.form
+                , layer = layui.layer
+                , layedit = layui.layedit
+                , laydate = layui.laydate
+                , element = layui.element
+                , $ = layui.jquery;
+       
+
+        //监听提交
+        form.on('submit(sub)', function (data) {
+            // layer.alert(JSON.stringify(data.field), {
+            //     title: '最终的提交信息'
+            // });
+            var checked = $("#statuss").prop("checked");
+            data.field.is_admin = checked ? 1 : 0;
+            $.ajax({
+                url:"{:url('user/add')}",
+                method:'post',
+                data:data.field,
+                dataType:'json',
+                success:function(res){
+                    console.log(res);
+                    if(res.code ==200){
+                        layer.alert(res.msg,{title: "提示"},function(index){
+                            window.location.reload();
+                            layer.close(index);
+                            
+                        });
+                        
+                    }else{
+                        layer.alert(res.msg, {
+                            title: '错误提示'
+                        });
+                    }
+                    return false;
+                },
+                error:function(){
+                    $.ajax({
+                        url:"{:url('Tips/tips')}",
+                        dataType:'json',
+                        method:'get',
+                        success:function(res){
+                            layer.alert(res.msg,{
+                                closeBtn: 0,
+                                anim: 1, //动画类型
+                                icon: 2,
+                                title:'错误提示'
+                            },function(index){
+                                layer.close(index);
+                            });
+                        }
+                    })
+                }
+            });
+            return false;
+        });
+
+
+    });
+</script>
+</body>
+</html>
